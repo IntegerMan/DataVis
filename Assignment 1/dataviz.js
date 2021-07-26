@@ -17,24 +17,27 @@ document.addEventListener('DOMContentLoaded', () => {
     
     d3.csv("ExcelFormattedGISTEMPData2CSV.csv", row => {
         // Code to manipulate rows goes here
+        row.Year = new Date('1/1/' + row.Year);
+
         return row;
     })
     .then(data => {
         console.log('loaded data', data);
 
-        let x = d3.scaleLinear()
-            .domain([1870, 2015])
+        let x = d3.scaleTime()
+            .domain([new Date('1/1/1875'), new Date('1/1/2015')])
             .range([0, width])
         g.append("g")
             .attr("transform", "translate(0," + height + ")")
             .call(d3.axisBottom(x)
-                .ticks(25)
-                .tickFormat((value, index) => {
-                    return value;
-                })
-            )
+                .ticks(d3.timeYear.every(5))
+                .tickFormat(d3.timeFormat("%Y"))
+        )
 
-        let y = d3.scaleLinear().domain([-50, 80]).range([height, 0]);
+        let y = d3.scaleLinear()
+            .domain([-50, 80])
+            .range([height, 0]);
+        
         g.append("g")
          .call(d3.axisLeft(y))
         
