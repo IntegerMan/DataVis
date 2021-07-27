@@ -1,5 +1,5 @@
-const nFill = "#ff3333";
-const sFill = "#33ff33";
+const nFill = "#ef8a62";
+const sFill = "#67a9cf";
 const margin = 50;
 let width = 800;
 let height = 500;
@@ -12,16 +12,7 @@ function drawHemispherePlot(svg, g, data) {
     const sHemData = buildSemiCircleSouthData();
     const nHemData = buildSemiCircleNorthData();    
 
-    const x = d3.scaleTime()
-        .domain([new Date('1/1/1875'), new Date('1/1/2015')])
-        .range([0, width])
-    
-    g.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x)
-            .ticks(d3.timeYear.every(5))
-            .tickFormat(d3.timeFormat("%Y"))
-    )
+    const x = addTimeSeries(g);
 
     const y = d3.scaleLinear()
         .domain([-55, 100])
@@ -67,10 +58,56 @@ function drawHemispherePlot(svg, g, data) {
 
 }
 
+function addTimeSeries(g) {
+    const x = d3.scaleTime()
+        .domain([new Date('1/1/1875'), new Date('1/1/2015')])
+        .range([0, width]);
+
+    g.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x)
+            .ticks(d3.timeYear.every(5))
+            .tickFormat(d3.timeFormat("%Y"))
+        );
+    return x;
+}
+
+function drawLinePlot(svg, g, data) {
+    console.debug(data.columns);
+    const x = addTimeSeries(g);
+
+    const y = d3.scaleLinear()
+        .domain([-250, 250])
+        .range([height, 0]);
+    
+    g.append("g").call(d3.axisLeft(y))
+    
+    drawLineGraph(svg, data, x, y, d => d["64N-90N"], '#764F26');
+    drawLineGraph(svg, data, x, y, d => d["44N-64N"], '#916A2F');
+    drawLineGraph(svg, data, x, y, d => d["24N-44N"], '#AB883A');
+    drawLineGraph(svg, data, x, y, d => d["EQU-24N"], '#C2A847');
+    drawLineGraph(svg, data, x, y, d => d["24S-EQU"], '#D29ACD');
+    drawLineGraph(svg, data, x, y, d => d["44S-24S"], '#BA769B');
+    drawLineGraph(svg, data, x, y, d => d["64S-44S"], '#9A576E');
+    drawLineGraph(svg, data, x, y, d => d["90S-64S"], '#753D46');
+}
+
+function drawLineGraph(svg, data, x, y, dataFunc, stroke) {
+    svg.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", stroke)
+        .attr("stroke-width", 1.5)
+        .attr("transform", "translate(" + margin + "," + margin + ")")
+        .attr("d", d3.line()
+            .x(function (d) { return x(d.Date); })
+            .y(function (d) { return y(dataFunc(d)); })
+        );
+}
+
 function clearTooltip() {
     tooltipDiv.transition().duration(500).style("opacity", 0);	
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -89,13 +126,18 @@ document.addEventListener('DOMContentLoaded', () => {
     d3.csv("ExcelFormattedGISTEMPData2CSV.csv", row => {
         // Code to manipulate rows goes here
         row.Date = new Date('1/1/' + row.Year);
+        row.NHem = +row.NHem;
+        row.SHem = +row.SHem;
+        row.Glob = +row.Glob;
+        row.Year = +row.Year;
 
         return row;
     })
     .then(data => {
         console.log('loaded data', data);
 
-        drawHemispherePlot(svg, g, data);
+        //drawHemispherePlot(svg, g, data);
+        drawLinePlot(svg, g, data);
     })
 });
 function buildSemiCircleNorthData() {
