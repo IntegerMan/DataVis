@@ -22,3 +22,11 @@ main {
     margin-right: auto;
     width: 1024px;
 }
+
+html {
+    background-color: #dddddd;
+}
+
+svg {
+    background-color: white;
+}
