@@ -1,8 +1,9 @@
+const aFill = "#8a8a8a";
 const nFill = "#ef8a62";
 const sFill = "#67a9cf";
 const eFill = "#676767";
 const dataFill = "#fffacd";
-const margin = {top: 50, left: 50, right: 50, bottom: 100};
+const margin = {top: 50, left: 80, right: 50, bottom: 100};
 let width = 800;
 let height = 500;
 
@@ -62,7 +63,7 @@ function drawHemispherePlot(svg, g, data) {
 
 function addTimeSeries(g) {
     const x = d3.scaleTime()
-        .domain([new Date('1/1/1880'), new Date('1/1/2015')])
+        .domain([new Date('1/1/1880'), new Date('1/1/2020')])
         .range([0, width]);
 
     g.append("g")
@@ -78,41 +79,41 @@ function drawLinePlot(svg, g, data) {
     console.debug(data.columns);
     const x = addTimeSeries(g);
 
-      svg.append("text")             
+    svg.append("text")             
       .attr("transform",
-            "translate(" + (width/2) + " ," + 
+            "translate(" + ((width/2) + margin.left) + " ," + 
+                           (35) + ")")
+        .style("text-anchor", "middle")
+        .style('font-size', '22pt')
+         .style('font-weight', 'bold')
+        .text("Annual Temperature Variation");
+
+    svg.append("text")             
+      .attr("transform",
+            "translate(" + ((width/2) + margin.left) + " ," + 
                            (height + margin.top + 40) + ")")
       .style("text-anchor", "middle")
-      .text("Year");
+        .text("Year");
+    
+    svg.append("text")             
+      .attr("transform",
+            "translate(" + (margin.left / 2) + " ," + 
+                           ((height/2) + margin.top) + "), rotate(-90)")
+        .style("text-anchor", "middle")
+      .text("Temperature Variation ( °C )");    
 
     const y = d3.scaleLinear()
-        .domain([-250, 250])
-        .range([height, 0]);
-    
+        .domain([-1, 1.5])
+        .range([height, 0]);    
         
-    g.append("g").call(d3.axisLeft(y))
+    g.append("g").call(d3.axisLeft(y).tickFormat(t => t + '°'))
     
-    //drawLineGraph(svg, data, x, y, d => d["64N-90N"], '#764F26');
-    //drawLineGraph(svg, data, x, y, d => d["44N-64N"], '#916A2F');
-    //drawLineGraph(svg, data, x, y, d => d["24N-44N"], '#AB883A');
-    //drawLineGraph(svg, data, x, y, d => d["EQU-24N"], '#C2A847');
-    //drawLineGraph(svg, data, x, y, d => d["24S-EQU"], '#D29ACD');
-    //drawLineGraph(svg, data, x, y, d => d["44S-24S"], '#BA769B');
-    //drawLineGraph(svg, data, x, y, d => d["64S-44S"], '#9A576E');
-    //drawLineGraph(svg, data, x, y, d => d["90S-64S"], '#753D46');
-    drawLineGraph(svg, data, x, y, d => d["Min"], sFill);
-    drawLineGraph(svg, data, x, y, d => d["Max"], nFill);
-    //drawLineGraph(svg, data, x, y, d => d["Glob"], eFill);
-
-		  	//Area
-        //var indexes = d3.range(data.length); 
-
     //Area in between
     svg.append("path")
         .datum(data)
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
         .attr('fill', dataFill)
-        .style('opacity', 0.5)
+        .style('opacity', 0.35)
         .attr("d", d3.area()
             .x(function (d) {
                 return x(d.Date);
@@ -123,6 +124,34 @@ function drawLinePlot(svg, g, data) {
             .y1(function (d) {
                 return y(d.Min);
             }));    
+
+    //drawLineGraph(svg, data, x, y, d => d["64N-90N"], nFill);
+    //drawLineGraph(svg, data, x, y, d => d["44N-64N"], 'purple');
+    //drawLineGraph(svg, data, x, y, d => d["24N-44N"], 'red');
+    //drawLineGraph(svg, data, x, y, d => d["EQU-24N"], 'green');
+    //drawLineGraph(svg, data, x, y, d => d["24S-EQU"], 'black');
+    //drawLineGraph(svg, data, x, y, d => d["44S-24S"], 'magenta');
+    //drawLineGraph(svg, data, x, y, d => d["64S-44S"], 'blue');
+    //drawLineGraph(svg, data, x, y, d => d["90S-64S"], sFill);
+    drawLineGraph(svg, data, x, y, d => d.Min, sFill);
+    drawLineGraph(svg, data, x, y, d => d.Max, nFill);
+    drawLineGraph(svg, data, x, y, d => d.Average, aFill);
+
+    // Legend
+    svg.append("circle").attr("cx",100).attr("cy",60).attr("r", 6).style("fill", nFill)
+    svg.append("circle").attr("cx",100).attr("cy",85).attr("r", 6).style("fill", aFill)
+    svg.append("circle").attr("cx",100).attr("cy",110).attr("r", 6).style("fill", sFill)
+    svg.append("text").attr("x", 115).attr("y", 62).text("Yearly High").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 115).attr("y", 87).text("Yearly Average").style("font-size", "15px").attr("alignment-baseline","middle")
+    svg.append("text").attr("x", 115).attr("y", 112).text("Yearly Low").style("font-size", "15px").attr("alignment-baseline","middle")
+
+		  	//Area
+        //var indexes = d3.range(data.length); 
+
+    // 0 Line
+    drawLineGraph(svg, data, x, y, () => 0, '#99999999');
+    
+
 }
 
 function drawLineGraph(svg, data, x, y, dataFunc, stroke) {
@@ -142,6 +171,25 @@ function clearTooltip() {
     tooltipDiv.transition().duration(500).style("opacity", 0);	
 }
 
+function sum(...nums) {
+    let total = 0;
+    for (num of nums) {
+        total += num;
+    }
+    return total;
+}
+
+function average(...nums) {
+    let total = sum(...nums);
+    return total / nums.length;
+}
+
+function getAnomaly(value) {
+    if (value === '***') return 0;
+
+    return +value;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const svg = d3.select("svg");
@@ -156,19 +204,42 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr("class", "tooltip")				
         .style("opacity", 0);
         
-    d3.csv("ExcelFormattedGISTEMPData2CSV.csv", row => {
-        // Code to manipulate rows goes here
+    d3.csv("GLB.Ts+dSST.csv", row => {
+        row.Jan = getAnomaly(row.Jan);
+        row.Feb = getAnomaly(row.Feb);
+        row.Mar = getAnomaly(row.Mar);
+        row.Apr = getAnomaly(row.Apr);
+        row.May = getAnomaly(row.May);
+        row.Jun = getAnomaly(row.Jun);
+        row.Jul = getAnomaly(row.Jul);
+        row.Aug = getAnomaly(row.Aug);
+        row.Sep = getAnomaly(row.Sep);
+        row.Oct = getAnomaly(row.Oct);
+        row.Nov = getAnomaly(row.Nov);
+        row.Dec = getAnomaly(row.Dec);
+        row.Year = getAnomaly(row.Year);
         row.Date = new Date('1/1/' + row.Year);
+
+        const values = [row.Jan, row.Feb, row.Mar, row.Apr, row.May, row.Jun, row.Jul, row.Aug, row.Sep, row.Oct, row.Nov, row.Dec];
+        row.Min = Math.min(...values);
+        row.Max = Math.max(...values);
+        row.Sum = sum(...values);
+        row.Average = average(...values);
+
+        /*
+        // Code to manipulate rows goes here
         row.NHem = +row.NHem;
         row.SHem = +row.SHem;
         row.Glob = +row.Glob;
-        row.Year = +row.Year;
         row.Min = Math.min(+row["64N-90N"], +row["44N-64N"], +row["24N-44N"], +row["EQU-24N"], +row["24S-EQU"],  +row["44S-24S"], +row["64S-44S"], +row["90S-64S"])
         row.Max = Math.max(+row["64N-90N"], +row["44N-64N"], +row["24N-44N"], +row["EQU-24N"], +row["24S-EQU"],  +row["44S-24S"], +row["64S-44S"], +row["90S-64S"])
+        */
+        //console.debug('Read Row', row);
 
         return row;
     })
     .then(data => {
+        data.pop(); // Remove the last year
         console.log('loaded data', data);
 
         //drawHemispherePlot(svg, g, data);

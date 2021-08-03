@@ -21,12 +21,21 @@ main {
     margin-left: auto;
     margin-right: auto;
     width: 1024px;
+    background-color: white;
+    padding: 1rem;
+    filter: drop-shadow(0.5rem 0.5rem 0.5rem #888888);
+}
+
+main>p {
+    text-align: center;
+    max-width: 800px;
+    margin: -2rem auto 1rem auto;
+    line-height: 150%;
 }
 
 html {
     background-color: #dddddd;
+    padding-top: 2rem;
 }
 
-svg {
-    background-color: white;
-}
+svg {}
